@@ -1,10 +1,11 @@
 
 from datetime import timedelta
 from pathlib import Path
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-s4u@-echypb0(6_96#pkokjp!3#%qs!a6rfi_9pshuim(s8r-j'
+SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = True
 
@@ -116,7 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
 TIME_ZONE = 'UTC'
 

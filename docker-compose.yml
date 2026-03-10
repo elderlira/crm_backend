@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: crm_postgres
+    environment:
+      POSTGRES_USER: crm_user       # usuário do banco
+      POSTGRES_PASSWORD: senha_de_acesso  # senha do banco
+      POSTGRES_DB: crm             # nome do banco
+    ports:
+      - "5432:5432"                # expõe porta 5432 para o host
+    volumes:
+      - crm_postgres_data:/var/lib/postgresql/data   # mantém dados persistentes
+
+volumes:
+  crm_postgres_data:
