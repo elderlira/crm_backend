@@ -11,7 +11,12 @@
 - docker compose up -d
 
 ### acess postgres
+
 - docker exec -it crm_postgres psql -U crm_user -d crm
+
+### migrate tables
+
+- python manage.py migrate authentication
 
 ## Insert role and users
 
