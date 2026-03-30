@@ -13,6 +13,23 @@
 ### acess postgres
 - docker exec -it crm_postgres psql -U crm_user -d crm
 
+
+### Create table in databse
+
+- python manage.py makemigrations
+- python manage.py migrate
+
+## Update table in database
+- python manage.py makemigrations authentication
+
+## Create user
+
+- python manage.py createuser
+
+## Painel adm
+
+- http://127.0.0.1:8000/admin
+
 ## Insert role and users
 
 -    INSERT INTO authentication_role (name, description) VALUES
