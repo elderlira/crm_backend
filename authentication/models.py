@@ -2,9 +2,18 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class Role(models.Model):
+    ADMIN = 1
+    GERENTE = 2
+    USER = 3
+    
+    ROLE_CHOICES = (
+        (ADMIN, 'Admin'),
+        (GERENTE, 'Gerente'),
+        (USER, 'User'),
+    )
 
+    id = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, primary_key=True)
     name = models.CharField(max_length=50, unique=True)
-    description = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
