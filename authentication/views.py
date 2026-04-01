@@ -6,6 +6,7 @@ from rest_framework import viewsets, permissions
 from django.contrib.auth import authenticate, get_user_model
 from .serializers import UserSerializer, CreateUserSerializer, RoleSerializer
 from .models import Role, Company, Department
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -21,6 +22,11 @@ class LoginView(APIView):
         password = request.data.get("password")
         user = authenticate(request, email=email, password=password)
         if user:
+
+            user.is_online = True
+            user.last_login_at = timezone.now()
+            user.save(update_fields=['is_online', 'last_login_at'])
+
             refresh = RefreshToken.for_user(user)
             return Response({
                 "access_token": str(refresh.access_token),
@@ -30,24 +36,36 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    def post(self, request):
-        return Response({"message": "Logout ok"}, status=204)
 
+    def post(self, request):
+        user = request.user
+        if user:
+            # --- LÓGICA DE LOGOUT ---
+            user.is_online = False
+            user.last_logout_at = timezone.now()
+            user.save(update_fields=['is_online', 'last_logout_at'])
+            
+        return Response({"message": "Logout realizado com sucesso"}, status=204)
+    
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    # O select_related carrega os nomes de Role, Company e Dept em uma única consulta
+    queryset = User.objects.select_related('role', 'company', 'department').all()
+    
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return CreateUserSerializer
         return UserSerializer
+
     def get_permissions(self):
+        # Apenas Admin pode deletar ou criar
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [permissions.IsAuthenticated()]
 
 # Viewsets simples para os selects do Vue
 class RoleViewSet(viewsets.ReadOnlyModelViewSet):

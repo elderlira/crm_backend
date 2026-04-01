@@ -65,6 +65,10 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
+    phone = models.CharField(max_length=11,blank=True,null=True)
+    is_online=models.BooleanField(default=False)
+    last_login_at=models.DateTimeField(blank=True, null=True)
+    last_logout_at=models.DateTimeField(blank=True, null=True)
     role = models.ForeignKey(Role, on_delete=models.PROTECT, null=True)
     company = models.ForeignKey('Company', on_delete=models.PROTECT, null=True)
     department = models.ForeignKey(Department, on_delete=models.PROTECT, null=True, blank=True)
