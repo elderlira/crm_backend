@@ -4,7 +4,8 @@ from django.db import models
 class Profile(models.Model):
     client = models.ForeignKey(
         'clients.Client',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="profiles"
     )
 
     name = models.CharField(max_length=100)
@@ -20,7 +21,7 @@ class Permission(models.Model):
 
 
 class ProfilePermission(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="profile_permissions")
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
     def __str__(self):

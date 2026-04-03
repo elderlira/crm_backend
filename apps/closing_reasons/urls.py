@@ -1,5 +1,13 @@
-from django.urls import path
+from rest_framework.routers import DefaultRouter
+from .views import ClosingReasonViewSet
 
-urlpatterns = [
-    
-]
+
+router = DefaultRouter()
+
+router.register(
+    "",
+    ClosingReasonViewSet,
+    basename="closing-reasons"
+)
+
+urlpatterns = router.urls
