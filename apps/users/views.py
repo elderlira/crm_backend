@@ -3,12 +3,13 @@ from django.contrib.auth import authenticate, get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework import status, viewsets
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .serializers import LoginSerializer, UserSerializer
+from .serializers import LoginSerializer, UserSerializer, UserClientSerializer
+from .models import UserClient
 
 User = get_user_model()
 
@@ -70,3 +71,18 @@ class MeView(APIView):
     def get(self, request):
 
         return Response(UserSerializer(request.user).data)
+    
+
+class UserClientViewSet(viewsets.ModelViewSet):
+
+    serializer_class = UserClientSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        if user.is_superadmin:
+            return UserClient.objects.all()
+
+        return UserClient.objects.filter(user=user)

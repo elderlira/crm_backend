@@ -6,6 +6,8 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
 
+    is_superadmin = models.BooleanField(default=False)
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
@@ -19,6 +21,7 @@ class User(AbstractUser):
     
 
 class UserClient(models.Model):
+
     user = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
@@ -28,7 +31,9 @@ class UserClient(models.Model):
     client = models.ForeignKey(
         'clients.Client',
         on_delete=models.CASCADE,
-        related_name='client_users'
+        related_name='client_users',
+        null=True,
+        blank=True
     )
 
     profile = models.ForeignKey(
