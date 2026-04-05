@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     'apps.clients',
     'apps.departments',
     'apps.permissions',
-    'apps.closing_reasons'
+    'apps.closing_reasons',
+    'apps.companies',
 ]
 
 MIDDLEWARE = [
