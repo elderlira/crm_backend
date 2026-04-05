@@ -12,9 +12,13 @@ class CompanySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class DepartmentSerializer(serializers.ModelSerializer):
+    # Criamos um campo de apenas leitura que pega o nome da empresa através da ForeignKey
+    company_name = serializers.CharField(source='company.name', read_only=True)
+
     class Meta:
         model = Department
-        fields = ['id', 'name', 'company'] # IMPORTANTE: 'company' deve estar aqui
+        # Agora incluímos 'company_name' na lista de campos
+        fields = ['id', 'name', 'company', 'company_name', 'is_active']
 
 class UserSerializer(serializers.ModelSerializer):
     role_name = serializers.CharField(source='role.name', read_only=True)

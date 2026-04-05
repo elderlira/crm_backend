@@ -40,12 +40,15 @@ class LogoutView(APIView):
     def post(self, request):
         user = request.user
         if user:
-            # --- LÓGICA DE LOGOUT ---
             user.is_online = False
             user.last_logout_at = timezone.now()
+            # O save deve vir antes do return
             user.save(update_fields=['is_online', 'last_logout_at'])
             
-        return Response({"message": "Logout realizado com sucesso"}, status=204)
+            # Mudamos para 200 para garantir que o Vue receba a confirmação
+            return Response({"message": "Logout realizado com sucesso"}, status=200)
+            
+        return Response({"error": "Usuário não encontrado"}, status=404)
     
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -81,7 +84,8 @@ class CompanyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CompanySerializer
     permission_classes = [IsAuthenticated]
 
-class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Department.objects.all()
+# No views.py
+class DepartmentViewSet(viewsets.ModelViewSet):
+    # O select_related faz um JOIN no SQL, trazendo os nomes das empresas de uma vez só
+    queryset = Department.objects.select_related('company').all()
     serializer_class = DepartmentSerializer
-    permission_classes = [IsAuthenticated]

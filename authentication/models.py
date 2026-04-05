@@ -26,17 +26,17 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-
+    
 class Department(models.Model):
-
     name = models.CharField(max_length=255)
-
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
         related_name="departments"
     )
-
+    # Adicione esta linha para o switch do Vue funcionar:
+    is_active = models.BooleanField(default=True) 
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
