@@ -6,7 +6,6 @@ class ProfileAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "client",
         "name"
     )
 
