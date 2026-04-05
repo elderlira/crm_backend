@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, UserClient
 
 
 class LoginSerializer(serializers.Serializer):
@@ -21,9 +21,24 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
     def get_role(self, obj):
-        user_client = obj.user_clients.first()
+
+        if obj.is_superadmin:
+            return "superadmin"
+
+        user_client = obj.user_clients.select_related("profile").first()
 
         if user_client and user_client.profile:
             return user_client.profile.name
 
         return None
+    
+class UserClientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserClient
+        fields = [
+            "id",
+            "user",
+            "client",
+            "profile"
+        ]
