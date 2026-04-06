@@ -8,8 +8,9 @@ from rest_framework import status, viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .serializers import LoginSerializer, UserSerializer, UserClientSerializer
-from .models import UserClient
+from .serializers import LoginSerializer, UserSerializer, UserCompanySerializer
+from .models import UserCompany
+from .serializers import UserCreateSerializer
 
 User = get_user_model()
 
@@ -73,9 +74,9 @@ class MeView(APIView):
         return Response(UserSerializer(request.user).data)
     
 
-class UserClientViewSet(viewsets.ModelViewSet):
+class UserCompanyViewSet(viewsets.ModelViewSet):
 
-    serializer_class = UserClientSerializer
+    serializer_class = UserCompanySerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -83,6 +84,29 @@ class UserClientViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         if user.is_superadmin:
-            return UserClient.objects.all()
+            return UserCompany.objects.all()
 
-        return UserClient.objects.filter(user=user)
+        return UserCompany.objects.filter(user=user)
+    
+class UserCreateView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        if not request.user.is_superadmin:
+            return Response(
+                {"error": "Only superadmin can create users"},
+                status=403
+            )
+
+        serializer = UserCreateSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_201_CREATED
+        )

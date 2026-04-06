@@ -20,25 +20,26 @@ class User(AbstractUser):
         return self.email
     
 
-class UserClient(models.Model):
+class UserCompany(models.Model):
 
     user = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.CASCADE,
-        related_name='user_companies'
+        related_name="user_companies"
     )
 
     company = models.ForeignKey(
-        'companies.Company',
+        "companies.Company",
         on_delete=models.CASCADE,
-        related_name='company_users',
+        related_name="company_users"
     )
 
     profile = models.ForeignKey(
-        'permissions.Profile',
+        "permissions.Profile",
         on_delete=models.SET_NULL,
-        null=True
-    )
+        null=True,
+        related_name="profile_users"
+)
 
     active = models.BooleanField(default=True)
 
@@ -53,4 +54,4 @@ class UserClient(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.email} - {self.client.name}"
+        return f"{self.user.email} ({self.company.name})"
