@@ -6,12 +6,12 @@ class DepartmentAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "client",
+        "company",
         "name",
         "message",
         "active"
     )
 
-    list_filter = ("active", "client")
+    list_filter = ("active", "company")
 
     search_fields = ("name",)

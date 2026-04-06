@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.clients.views import ClientViewSet
 from apps.closing_reasons.views import ClosingReasonViewSet
-from apps.departments.views import DepartmentsViewSet
+from apps.departments.views import DepartmentViewSet 
 from apps.permissions.views import (PermissionViewSet, ProfileViewSet, ProfilePermissionViewSet)
 from apps.users.views import UserClientViewSet
 from apps.companies.views import CompanyViewSet
@@ -13,7 +13,7 @@ router.register(r"clients", ClientViewSet, basename="clients")
 
 router.register(r"closing-reasons",ClosingReasonViewSet,basename="closing-reasons")
 
-router.register(r"departments", DepartmentsViewSet, basename="departments")
+router.register(r"departments", DepartmentViewSet, basename="departments")
 
 router.register(r"permissions", PermissionViewSet, basename="permissions")
 
