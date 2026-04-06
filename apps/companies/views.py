@@ -1,5 +1,3 @@
-# apps/companies/views.py
-
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -41,6 +39,6 @@ class CompanyViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
 
         if self.action == "create":
-            return [IsSuperAdmin()]
+            return [IsAuthenticated(), IsSuperAdmin()]
 
-        return super().get_permissions()
+        return [IsAuthenticated()]
