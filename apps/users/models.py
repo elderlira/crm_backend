@@ -25,15 +25,13 @@ class UserClient(models.Model):
     user = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
-        related_name='user_clients'
+        related_name='user_companies'
     )
 
-    client = models.ForeignKey(
-        'clients.Client',
+    company = models.ForeignKey(
+        'companies.Company',
         on_delete=models.CASCADE,
-        related_name='client_users',
-        null=True,
-        blank=True
+        related_name='company_users',
     )
 
     profile = models.ForeignKey(
@@ -41,6 +39,18 @@ class UserClient(models.Model):
         on_delete=models.SET_NULL,
         null=True
     )
+
+    active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "company"],
+                name="unique_user_company"
+            )
+        ]
 
     def __str__(self):
         return f"{self.user.email} - {self.client.name}"
