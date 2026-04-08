@@ -22,9 +22,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         if user.is_superadmin:
             return Company.objects.all()
 
-        return Company.objects.filter(
-            company_users__user=user
-        )
+        return Company.objects.filter(id=user.company_id)
 
     def create(self, request, *args, **kwargs):
 

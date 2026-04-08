@@ -4,7 +4,7 @@ from apps.clients.views import ClientViewSet
 from apps.closing_reasons.views import ClosingReasonViewSet
 from apps.departments.views import DepartmentViewSet 
 from apps.permissions.views import (PermissionViewSet, ProfileViewSet, ProfilePermissionViewSet)
-from apps.users.views import UserCompanyViewSet
+from apps.users.views import UserViewSet
 from apps.companies.views import CompanyViewSet
 
 router = DefaultRouter()
@@ -21,7 +21,7 @@ router.register(r"profiles", ProfileViewSet, basename="profiles")
 
 router.register(r"profile-permissions", ProfilePermissionViewSet, basename="profile-permissions")
 
-router.register(r"user-clients", UserCompanyViewSet, basename="user-clients")
+router.register(r"users", UserViewSet, basename="users")
 
 router.register(r"companies", CompanyViewSet, basename="companies")
 

@@ -7,6 +7,4 @@ class CompanyQuerysetMixin:
         if user.is_superadmin:
             return model.objects.all()
 
-        return model.objects.filter(
-            company__company_users__user=user
-        )
+        return model.objects.filter(company=user.company)

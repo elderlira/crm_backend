@@ -1,20 +1,13 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from apps.core.viewsets import BaseCompanyViewSet
 
 from .models import Client
 from .serializers import ClientSerializer
 
 
-class ClientViewSet(viewsets.ModelViewSet):
+class ClientViewSet(BaseCompanyViewSet):
 
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-
-        user = self.request.user
-
-        if user.is_superadmin:
-            return Client.objects.all().order_by("name")
-
-        return Client.objects.filter(client_users__user=user)
+    queryset = Client.objects.all()

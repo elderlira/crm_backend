@@ -4,13 +4,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import PermissionDenied
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .serializers import LoginSerializer, UserSerializer, UserCompanySerializer
-from .models import UserCompany
-from .serializers import UserCreateSerializer
+from apps.core.viewsets import BaseCompanyViewSet
+
+from .serializers import LoginSerializer, UserSerializer
+# from .serializers import UserCreateSerializer
 
 User = get_user_model()
 
@@ -73,40 +76,31 @@ class MeView(APIView):
 
         return Response(UserSerializer(request.user).data)
     
+class UserViewSet(BaseCompanyViewSet):
 
-class UserCompanyViewSet(viewsets.ModelViewSet):
-
-    serializer_class = UserCompanySerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
+    def perform_create(self, serializer):
 
         user = self.request.user
 
-        if user.is_superadmin:
-            return UserCompany.objects.all()
+        if not user.is_superadmin:
+            raise PermissionDenied("Only superadmin can create users")
 
-        return UserCompany.objects.filter(user=user)
-    
-class UserCreateView(APIView):
+        serializer.save()
 
-    permission_classes = [IsAuthenticated]
+    def perform_update(self, serializer):
 
-    def post(self, request):
+        if serializer.instance.company != self.request.user.company:
+            raise PermissionDenied("You cannot edit this user")
 
-        if not request.user.is_superadmin:
-            return Response(
-                {"error": "Only superadmin can create users"},
-                status=403
-            )
+        serializer.save()
 
-        serializer = UserCreateSerializer(data=request.data)
+    def perform_destroy(self, instance):
 
-        serializer.is_valid(raise_exception=True)
+        if self.request.user.company != instance.company:
+            raise PermissionDenied("You cannot delete this user")
 
-        user = serializer.save()
-
-        return Response(
-            UserSerializer(user).data,
-            status=status.HTTP_201_CREATED
-        )
+        instance.delete()

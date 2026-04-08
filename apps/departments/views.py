@@ -17,13 +17,20 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
 
         user = self.request.user
+        queryset = Department.objects.all()
+        company = self.request.query_params.get("company")
 
         if user.is_superadmin:
             return Department.objects.all()
+        
+        if company:
+            queryset = queryset.filter(company_id=company)
 
-        return Department.objects.filter(
-            company__company_users__user=user
-        )
+        return queryset
+
+    #     return Department.objects.filter(
+    #     company=user.company
+    # )
     
     def create(self, request, *args, **kwargs):
 

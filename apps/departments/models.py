@@ -38,29 +38,3 @@ class Department(models.Model):
 
     def __str__(self):
         return f"{self.company.name} - {self.name}"
-
-
-class DepartmentUser(models.Model):
-
-    user = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        related_name="user_departments"
-    )
-
-    department = models.ForeignKey(
-        "departments.Department",
-        on_delete=models.CASCADE,
-        related_name="department_users"
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["user", "department"],
-                name="unique_user_department"
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.user.email} - {self.department.name}"
