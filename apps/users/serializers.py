@@ -1,29 +1,32 @@
 from rest_framework import serializers
-from .models import User
+from django.contrib.auth import get_user_model
+from .models import User, UserDepartment
+from apps.departments.models import Department
 
+User = get_user_model()
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField()
-
+    password = serializers.CharField(write_only=True)
 
 class UserSerializer(serializers.ModelSerializer):
-
-    role = serializers.SerializerMethodField()
-
     class Meta:
         model = User
-        fields = [
-            "id",
-            "email",
-            "username",
-            "role"
-        ]
+        fields = ('id', 'email', 'name', 'phone', 'company', 'role')
 
-    def get_role(self, obj):
-        user_client = obj.user_clients.first()
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email', 'password', 'name', 'phone', 'company', 
+            'role', 'away_message', 'no_auto_assign', 
+            'see_department_tickets'
+        )
+        extra_kwargs = {'password': {'write_only': True}}
 
-        if user_client and user_client.profile:
-            return user_client.profile.name
-
-        return None
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: PostgresDB
+    restart: always
+    environment:
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: senha_de_acesso
+      POSTGRES_DB: crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - crm_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  crm_postgres_data:

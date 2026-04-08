@@ -12,14 +12,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ClosingReason',
+            name='Company',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reason', models.CharField(max_length=255)),
-                ('funnel', models.CharField(max_length=100)),
-                ('department', models.CharField(max_length=100)),
+                ('name', models.CharField(max_length=255)),
                 ('active', models.BooleanField(default=True)),
-                ('message', models.TextField(blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],

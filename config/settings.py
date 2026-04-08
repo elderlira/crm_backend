@@ -25,10 +25,11 @@ INSTALLED_APPS = [
     'rest_framework',
 
     "corsheaders",
-    'apps.users',
-    'apps.clients',
+
+    'apps.company', 
     'apps.departments',
     'apps.permissions',
+    'apps.users',    
     'apps.closing_reasons'
 ]
 
@@ -109,9 +110,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Bahia'
 
 USE_I18N = True
 
