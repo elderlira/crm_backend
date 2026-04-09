@@ -78,7 +78,9 @@ class MeView(APIView):
     
 class UserViewSet(BaseCompanyViewSet):
 
-    queryset = User.objects.all()
+    queryset = User.objects.all().select_related("company").prefetch_related(
+        "departments__department"
+    )
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -87,25 +89,28 @@ class UserViewSet(BaseCompanyViewSet):
             return UserCreateSerializer
         return UserSerializer
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = UserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        user = self.request.user
-
-        if not user.is_superadmin:
+        if not request.user.is_superadmin:
             raise PermissionDenied("Only superadmin can create users")
 
-        serializer.save()
+        user = serializer.save()
+
+        user = User.objects.select_related("company").prefetch_related(
+            "departments__department"
+        ).get(pk=user.pk)
+
+        response_serializer = UserSerializer(user)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
-
         if serializer.instance.company != self.request.user.company:
             raise PermissionDenied("You cannot edit this user")
-
         serializer.save()
 
     def perform_destroy(self, instance):
-
         if self.request.user.company != instance.company:
             raise PermissionDenied("You cannot delete this user")
-
         instance.delete()

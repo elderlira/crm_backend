@@ -9,9 +9,6 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
 
-
-# users/serializers.py
-
 class UserCreateSerializer(serializers.Serializer):
 
     username = serializers.CharField()
@@ -21,7 +18,7 @@ class UserCreateSerializer(serializers.Serializer):
     absence_message = serializers.CharField(required=False, allow_blank=True)
 
     company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all())
-    role = serializers.ChoiceField(choices=["admin", "supervisor", "agent"])  # ← era 'profile'
+    role = serializers.ChoiceField(choices=["admin", "supervisor", "agent"])
 
     departments = serializers.ListField(
         child=serializers.IntegerField(),
@@ -58,7 +55,7 @@ class UserCreateSerializer(serializers.Serializer):
         company = validated_data.pop("company")
         password = validated_data.pop("password")
         username = validated_data.pop("username")
-        role = validated_data.pop("role")  # ← era profile
+        role = validated_data.pop("role")
 
         user = User.objects.create(
             username=username,
@@ -85,7 +82,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     department = serializers.SerializerMethodField()
     company = serializers.SerializerMethodField()
-    role = serializers.CharField()  # ← adicione explicitamente
+    role = serializers.CharField()
 
     class Meta:
         model = User
@@ -96,7 +93,7 @@ class UserSerializer(serializers.ModelSerializer):
             "cellphone",
             "department",
             "company",
-            "role",       # ← adicione aqui também
+            "role",
         ]
 
     def get_company(self, obj):
@@ -105,7 +102,7 @@ class UserSerializer(serializers.ModelSerializer):
         return None
 
     def get_department(self, obj):
-        departments = obj.departments.select_related("department")
+        departments = obj.departments.all().select_related("department")
         return [
             {"id": d.department.id, "name": d.department.name}
             for d in departments
