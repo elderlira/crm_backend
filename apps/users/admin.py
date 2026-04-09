@@ -8,10 +8,11 @@ class UserDepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ("id", "email", "name", "company", "role", "is_staff")
-    
+    list_display = ("id", "email", "name", "company", "role", "away_message", "no_auto_assign", "see_department_tickets","is_online", "last_login", "last_logout")
+    readonly_fields = ("last_login", "last_logout")
+
     fieldsets = UserAdmin.fieldsets + (
-        ("CRM Info", {"fields": ("name", "phone", "company", "role", "away_message", "no_auto_assign", "see_department_tickets")}),
+        ("CRM Info", {"fields": ("name", "phone", "company", "role", "away_message", "no_auto_assign", "see_department_tickets","is_online")}),
     )
     
     add_fieldsets = UserAdmin.add_fieldsets + (

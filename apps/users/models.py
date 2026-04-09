@@ -23,6 +23,10 @@ class User(AbstractUser):
     away_message = models.TextField(blank=True, null=True)
     no_auto_assign = models.BooleanField(default=False)
     see_department_tickets = models.BooleanField(default=True)
+    last_login = models.DateTimeField(null=True, blank=True, verbose_name="Último Login")
+    last_logout = models.DateTimeField(null=True, blank=True, verbose_name="Último Logout")
+    is_online = models.BooleanField(default=False, verbose_name="Status Online")
+
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "name"]
