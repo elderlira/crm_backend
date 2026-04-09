@@ -83,6 +83,7 @@ class UserSerializer(serializers.ModelSerializer):
     department = serializers.SerializerMethodField()
     company = serializers.SerializerMethodField()
     role = serializers.CharField()
+    role_display = serializers.SerializerMethodField() 
 
     class Meta:
         model = User
@@ -94,8 +95,20 @@ class UserSerializer(serializers.ModelSerializer):
             "department",
             "company",
             "role",
+            "role_display",
+            "is_superadmin",
         ]
 
+    def get_role_display(self, obj):
+        role_map = {
+            "admin": "Administrador",
+            "supervisor": "Supervisor",
+            "agent": "Agente"
+        }
+        if obj.is_superadmin:
+            return "Super Admin"
+        return role_map.get(obj.role, obj.role)
+    
     def get_company(self, obj):
         if obj.company:
             return {"id": obj.company.id, "name": obj.company.name}
