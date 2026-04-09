@@ -15,22 +15,18 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-
         user = self.request.user
-        queryset = Department.objects.all()
-        company = self.request.query_params.get("company")
+        company_id = self.request.query_params.get("company")
 
         if user.is_superadmin:
+            if company_id:
+                return Department.objects.filter(company_id=company_id)
             return Department.objects.all()
-        
-        if company:
-            queryset = queryset.filter(company_id=company)
 
+        queryset = Department.objects.filter(company=user.company)
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
         return queryset
-
-    #     return Department.objects.filter(
-    #     company=user.company
-    # )
     
     def create(self, request, *args, **kwargs):
 

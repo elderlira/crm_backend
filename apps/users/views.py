@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from apps.core.viewsets import BaseCompanyViewSet
 
 from .serializers import LoginSerializer, UserSerializer
-# from .serializers import UserCreateSerializer
+from .serializers import UserCreateSerializer
 
 User = get_user_model()
 
@@ -81,6 +81,11 @@ class UserViewSet(BaseCompanyViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UserCreateSerializer
+        return UserSerializer
 
     def perform_create(self, serializer):
 

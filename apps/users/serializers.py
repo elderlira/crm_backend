@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.db import transaction
-from .models import User
+from .models import User, UserDepartment
 from apps.departments.models import Department
+from apps.companies.models import Company
 
 
 class LoginSerializer(serializers.Serializer):
@@ -9,17 +10,18 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
 
+# users/serializers.py
+
 class UserCreateSerializer(serializers.Serializer):
 
     username = serializers.CharField()
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-
     cellphone = serializers.CharField(required=False, allow_blank=True)
     absence_message = serializers.CharField(required=False, allow_blank=True)
 
-    company = serializers.IntegerField()
-    profile = serializers.CharField()
+    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all())
+    role = serializers.ChoiceField(choices=["admin", "supervisor", "agent"])  # ← era 'profile'
 
     departments = serializers.ListField(
         child=serializers.IntegerField(),
@@ -27,54 +29,54 @@ class UserCreateSerializer(serializers.Serializer):
     )
 
     def validate_departments(self, value):
+        try:
+            company_id = int(self.initial_data.get("company"))
+        except (TypeError, ValueError):
+            raise serializers.ValidationError("Invalid company")
 
-        company_id = self.initial_data.get("company")
-
-        valid_departments = Department.objects.filter(
-            company_id=company_id
-        ).values_list("id", flat=True)
+        valid_department_ids = set(
+            Department.objects.filter(
+                company_id=company_id
+            ).values_list("id", flat=True)
+        )
 
         for dep in value:
-            if dep not in valid_departments:
+            if dep not in valid_department_ids:
                 raise serializers.ValidationError(
-                    "Invalid department for this company"
+                    f"Department {dep} does not belong to company {company_id}"
                 )
-
         return value
 
     def validate_email(self, value):
-
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already registered")
-
         return value
 
     @transaction.atomic
     def create(self, validated_data):
-
         departments = validated_data.pop("departments", [])
-        company_id = validated_data.pop("company")
-
+        company = validated_data.pop("company")
         password = validated_data.pop("password")
         username = validated_data.pop("username")
+        role = validated_data.pop("role")  # ← era profile
 
         user = User.objects.create(
             username=username,
             email=validated_data["email"],
-            company_id=company_id,
+            company=company,
             cellphone=validated_data.get("cellphone"),
             absence_message=validated_data.get("absence_message"),
-            role=validated_data.get("profile")
+            role=role
         )
 
         user.set_password(password)
         user.save()
 
-        # for department_id in departments:
-        #     UserDepartment.objects.create(
-        #         user=user,
-        #         department_id=department_id
-        #     )
+        for department_id in departments:
+            UserDepartment.objects.create(
+                user=user,
+                department_id=department_id
+            )
 
         return user
 
@@ -82,7 +84,8 @@ class UserCreateSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
 
     department = serializers.SerializerMethodField()
-    company = serializers.StringRelatedField()
+    company = serializers.SerializerMethodField()
+    role = serializers.CharField()  # ← adicione explicitamente
 
     class Meta:
         model = User
@@ -92,17 +95,18 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "cellphone",
             "department",
-            "company"
+            "company",
+            "role",       # ← adicione aqui também
         ]
 
+    def get_company(self, obj):
+        if obj.company:
+            return {"id": obj.company.id, "name": obj.company.name}
+        return None
+
     def get_department(self, obj):
-
         departments = obj.departments.select_related("department")
-
         return [
-            {
-                "id": d.department.id,
-                "name": d.department.name
-            }
+            {"id": d.department.id, "name": d.department.name}
             for d in departments
         ]
