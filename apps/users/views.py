@@ -1,10 +1,10 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.utils import timezone # Importado aqui para o LoginView funcionar
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status, viewsets
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -18,12 +18,7 @@ from .serializers import UserCreateSerializer
 User = get_user_model()
 
 class LoginView(APIView):
-
-    authentication_classes = []
-    permission_classes = []
-
     def post(self, request):
-
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -33,13 +28,15 @@ class LoginView(APIView):
         user = authenticate(request, email=email, password=password)
 
         if user is None:
-            return Response(
-                {"error": "Invalid credentials"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Sincronização de Status Online e Login
+        user.is_online = True
+        user.last_login = timezone.now()
+        user.save(update_fields=['is_online', 'last_login']) 
 
         refresh = RefreshToken.for_user(user)
-
+    
         return Response({
             "access_token": str(refresh.access_token),
             "refresh_token": str(refresh),
@@ -50,39 +47,41 @@ class RefreshView(TokenRefreshView):
     pass
 
 class LogoutView(APIView):
-
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
         refresh_token = request.data.get("refresh_token")
+        
+        user = request.user
+        user.is_online = False
+        user.last_logout = timezone.now()
+        user.save(update_fields=['is_online', 'last_logout'])
 
         try:
-
             token = RefreshToken(refresh_token)
             token.blacklist()
-
             return Response({"message": "Logout successful"})
-
         except Exception:
-
             return Response({"error": "Invalid token"}, status=400)
-        
+               
 class MeView(APIView):
-
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
-
         return Response(UserSerializer(request.user).data)
     
 class UserViewSet(BaseCompanyViewSet):
-
-    queryset = User.objects.all().select_related("company").prefetch_related(
-        "departments__department"
-    )
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    # --- O SEGREDO ESTÁ AQUI ---
+    def get_queryset(self):
+        # Se for superadmin, removemos o filtro de empresa do BaseCompanyViewSet
+        if self.request.user.is_superadmin:
+            return User.objects.all().select_related("company").prefetch_related(
+                "departments__department"
+            )
+        # Se não for, mantém o comportamento padrão do BaseCompanyViewSet (filtrar por empresa)
+        return super().get_queryset()
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -102,15 +101,31 @@ class UserViewSet(BaseCompanyViewSet):
             "departments__department"
         ).get(pk=user.pk)
 
-        response_serializer = UserSerializer(user)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
+
+        if self.request.user.is_superadmin:
+            serializer.save()
+            return
+
+  
         if serializer.instance.company != self.request.user.company:
-            raise PermissionDenied("You cannot edit this user")
+            raise PermissionDenied("Você não tem permissão para editar este usuário.")
+        
         serializer.save()
 
-    def perform_destroy(self, instance):
-        if self.request.user.company != instance.company:
-            raise PermissionDenied("You cannot delete this user")
-        instance.delete()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # REGRA DE OURO: Se for superadmin, deleta qualquer um
+        if request.user.is_superadmin:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # Se não for, trava por empresa
+        if instance.company != request.user.company:
+            raise PermissionDenied("Você não tem permissão para excluir usuários")
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
