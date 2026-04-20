@@ -82,8 +82,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     department = serializers.SerializerMethodField()
     company = serializers.SerializerMethodField()
+    company_info = serializers.SerializerMethodField(read_only=True)
     role = serializers.CharField()
     role_display = serializers.SerializerMethodField() 
+
+    
+    uLogin = serializers.DateTimeField(source='last_login', format='%d/%m/%Y %H:%M', read_only=True)
+    uLogout = serializers.DateTimeField(source='last_logout', format='%d/%m/%Y %H:%M', read_only=True)
+    online = serializers.BooleanField(source='is_online', read_only=True)
+
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
@@ -92,26 +100,44 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "cellphone",
+            "password",
             "department",
             "company",
+            "company_info",
             "role",
-            "role_display",
             "is_superadmin",
+            "role_display",
+            "uLogin",
+            "uLogout",
+            "online",
+            "is_superadmin",
+            "absence_message"
         ]
 
+    def get_company_info(self, obj):
+        """Este método resolve o erro AttributeError: 'get_company_info'"""
+        if obj.company:
+            return {
+                "id": obj.company.id, 
+                "name": obj.company.name
+            }
+        return None
+    
     def get_role_display(self, obj):
+
+        if obj.is_superadmin:
+            return "Super Admin"
+        
         role_map = {
             "admin": "Administrador",
             "supervisor": "Supervisor",
             "agent": "Agente"
         }
-        if obj.is_superadmin:
-            return "Super Admin"
         return role_map.get(obj.role, obj.role)
     
     def get_company(self, obj):
         if obj.company:
-            return {"id": obj.company.id, "name": obj.company.name}
+            return obj.company.name
         return None
 
     def get_department(self, obj):
@@ -120,3 +146,16 @@ class UserSerializer(serializers.ModelSerializer):
             {"id": d.department.id, "name": d.department.name}
             for d in departments
         ]
+    
+    def get_online(self, obj):
+        return getattr(obj, 'is_online', False)
+    
+    def get_uLogin(self, obj):
+        if obj.last_login:
+            return obj.last_login.strftime('%d/%m/%Y %H:%M')
+        return "—"
+
+    def get_uLogout(self, obj):
+        if hasattr(obj, 'last_logout') and obj.last_logout:
+            return obj.last_logout.strftime('%d/%m/%Y %H:%M')
+        return "—"

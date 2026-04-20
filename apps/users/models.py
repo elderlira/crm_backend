@@ -39,6 +39,16 @@ class User(AbstractUser):
 
     is_active = models.BooleanField(default=True)
 
+    is_online = models.BooleanField(default=False)
+    last_logout = models.DateTimeField(null=True, blank=True)
+    
+    # No final do arquivo ou dentro do método save do seu modelo User
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.is_superadmin = True
+            self.role = 'admin'
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.email
     
