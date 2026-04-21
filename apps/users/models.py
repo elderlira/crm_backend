@@ -41,6 +41,12 @@ class User(AbstractUser):
 
     is_online = models.BooleanField(default=False)
     last_logout = models.DateTimeField(null=True, blank=True)
+
+    absence_message = models.TextField(
+            null=True, 
+            blank=True, 
+            verbose_name="Mensagem de Ausência"
+        )
     
     # No final do arquivo ou dentro do método save do seu modelo User
     def save(self, *args, **kwargs):
