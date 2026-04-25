@@ -35,7 +35,6 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        # Atualiza status online e registra o login oficial do Django
         user.is_online = True
         user.save(update_fields=['is_online']) 
         update_last_login(None, user) 
@@ -69,7 +68,7 @@ class LogoutView(APIView):
 
             return Response({"message": "Logout com sucesso"}, status=200)
         except Exception as e:
-            return Response({"error": str(e)}, status=200)
+            return Response({"error": str(e)}, status=400)
         
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -86,7 +85,6 @@ class UserViewSet(BaseCompanyViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # AJUSTE: Super Admin vê todos. Outros seguem a trava da BaseCompanyViewSet
         if getattr(user, 'is_superadmin', False):
             return User.objects.all().select_related("company").prefetch_related(
                 "departments__department"
@@ -105,8 +103,6 @@ class UserViewSet(BaseCompanyViewSet):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-
-        # Recarrega com relations para o retorno da API ser completo
         user = User.objects.select_related("company").prefetch_related(
             "departments__department"
         ).get(pk=user.pk)
@@ -116,8 +112,6 @@ class UserViewSet(BaseCompanyViewSet):
 
 
     def perform_update(self, serializer):
-        # Se o Super Admin mudar o role para 'agent' ou 'supervisor', 
-        # nós desligamos a flag is_superadmin automaticamente.
         role = self.request.data.get('role')
         if role and role != 'admin':
             serializer.validated_data['is_superadmin'] = False
@@ -127,7 +121,6 @@ class UserViewSet(BaseCompanyViewSet):
     def perform_destroy(self, instance):
         request_user = self.request.user
         
-        # AJUSTE: Permite se for Super Admin OU se pertencerem à mesma empresa
         if request_user.is_superadmin or instance.company == request_user.company:
             instance.delete()
         else:
