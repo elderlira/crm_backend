@@ -12,5 +12,5 @@ class LabelViewSet(viewsets.ModelViewSet):
 
         if user.is_superuser:
           return Label.objects.all()
-        return Label.objects.filter(company=user.company)
+        
     
