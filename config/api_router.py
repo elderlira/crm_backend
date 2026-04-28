@@ -6,6 +6,7 @@ from apps.departments.views import DepartmentViewSet
 from apps.permissions.views import (PermissionViewSet, ProfileViewSet, ProfilePermissionViewSet)
 from apps.users.views import UserViewSet
 from apps.companies.views import CompanyViewSet
+from apps.labels.views import LabelViewSet
 
 router = DefaultRouter()
 
@@ -24,5 +25,7 @@ router.register(r"profile-permissions", ProfilePermissionViewSet, basename="prof
 router.register(r"users", UserViewSet, basename="users")
 
 router.register(r"companies", CompanyViewSet, basename="companies")
+
+router.register(r"labels",LabelViewSet, basename="labels")
 
 urlpatterns = router.urls

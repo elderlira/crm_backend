@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'apps.permissions',
     'apps.closing_reasons',
     'apps.companies',
+    'apps.labels',
 ]
 
 MIDDLEWARE = [
