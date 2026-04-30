@@ -10,7 +10,17 @@ class LabelViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        if user.is_superuser:
+        if user.is_superadmin:
           return Label.objects.all()
         
-    
+        if not user.company:
+            return Label.objects.none()
+
+        return Label.objects.filter(company=user.company)
+
+    def perform_create(self, serializer):
+           if self.request.user.company:
+            serializer.save(company=self.request.user.company)
+
+           else:
+            serializer.save()
