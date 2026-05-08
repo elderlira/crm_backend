@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'apps.closing_reasons',
     'apps.companies',
     'apps.labels',
+    'apps.profiles',
 ]
 
 MIDDLEWARE = [
